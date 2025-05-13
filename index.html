@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saúde Agora - Agendamento Médico Inteligente</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #027424;
+      --secondary: #2acc1bc4;
+      --accent: #4895ef;
+      --light: #f8f9fa;
+      --dark: #109604d8;
+      --success: #4cc9f0;
+      --danger: #f72585;
+      --warning: #f8961e;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f5f7fb;
+      color: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .navbar-brand {
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: var(--primary);
+    }
+    
+    .hero-section {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: white;
+      border-radius: 15px;
+      padding: 4rem 2rem;
+      margin-bottom: 3rem;
+      box-shadow: 0 10px 30px rgba(67, 97, 238, 0.2);
+    }
+    
+    .card {
+      border: none;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+      background-color: white;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn {
+      padding: 0.6rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      border-color: var(--primary);
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--secondary);
+      border-color: var(--secondary);
+    }
+    
+    .btn-outline-primary {
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+    
+    .btn-outline-primary:hover {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .feature-icon {
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      background-color: rgba(67, 97, 238, 0.1);
+      border-radius: 50%;
+      font-size: 2rem;
+      color: var(--primary);
+    }
+    
+    .form-control {
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+    }
+    
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+    }
+    
+    .time-slot {
+      cursor: pointer;
+      transition: all 0.2s;
+      border-radius: 8px;
+      padding: 0.75rem;
+      margin: 0.25rem;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .time-slot.available {
+      background-color: rgba(72, 149, 239, 0.1);
+      color: var(--accent);
+    }
+    
+    .time-slot.booked {
+      background-color: rgba(248, 37, 133, 0.1);
+      color: var(--danger);
+      cursor: not-allowed;
+    }
+    
+    .time-slot.selected {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .appointment-card {
+      border-left: 4px solid var(--primary);
+      transition: all 0.3s;
+    }
+    
+    .appointment-card.canceled {
+      border-left-color: var(--danger);
+      opacity: 0.7;
+    }
+    
+    .admin-section {
+      background-color: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+    
+    .page {
+      display: none;
+    }
+    
+    .page.active {
+      display: block;
+    }
+    
+    .clinica-card {
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .clinica-card.selected {
+      border: 2px solid var(--primary);
+      background-color: rgba(67, 97, 238, 0.05);
+    }
+    
+    footer {
+      background-color: var(--dark);
+      color: white;
+      margin-top: auto;
+    }
+    
+    @media (max-width: 768px) {
+      .hero-section {
+        padding: 3rem 1.5rem;
+      }
+      
+      .hero-section h1 {
+        font-size: 2.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="#" onclick="showPage('home')">
+        <i class="bi bi-heart-pulse me-2"></i>Saúde Agora
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showPage('home')">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="showPage('clinicas')">Clínicas</a>
+          </li>
+        </ul>
+        <div id="mainNav" class="d-flex">
+          <a href="#" class="btn btn-outline-primary me-2" onclick="showPage('login')">Entrar</a>
+          <a href="#" class="btn btn-primary" onclick="showPage('cadastro')">Cadastre-se</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="container my-4">
+    <!-- Página Inicial -->
+    <div id="home-page" class="page active">
+      <section class="hero-section">
+        <div class="row align-items-center">
+          <div class="col-lg-6">
+            <h1 class="display-4 fw-bold mb-3">Agendamento médico simplificado</h1>
+            <p class="lead mb-4">Encontre os melhores especialistas e agende sua consulta em poucos cliques.</p>
+            <div class="d-flex gap-3">
+              <a href="#" class="btn btn-light btn-lg" onclick="showPage('cadastro')">Criar conta</a>
+              <a href="#" class="btn btn-outline-light btn-lg" onclick="showPage('clinicas')">Ver clínicas</a>
+            </div>
+          </div>
+          <div class="col-lg-6 d-none d-lg-block">
+            <img src="https://img.freepik.com/free-vector/medical-appointment-illustration_23-2149325334.jpg" alt="Agendamento médico" class="img-fluid">
+          </div>
+        </div>
+      </section>
+
+      <section class="my-5 py-4">
+        <div class="text-center mb-5">
+          <h2 class="fw-bold">Como funciona</h2>
+          <p class="text-muted">Agende sua consulta em três passos simples</p>
+        </div>
+        <div class="row g-4">
+          <div class="col-md-4">
+            <div class="card h-100 border-0">
+              <div class="card-body text-center py-4">
+                <div class="feature-icon">
+                  <i class="bi bi-search"></i>
+                </div>
+                <h3 class="h4">Encontre</h3>
+                <p class="text-muted">Busque por especialidade ou localização e encontre a clínica ideal para você.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card h-100 border-0">
+              <div class="card-body text-center py-4">
+                <div class="feature-icon">
+                  <i class="bi bi-calendar-check"></i>
+                </div>
+                <h3 class="h4">Agende</h3>
+                <p class="text-muted">Escolha data e horário disponíveis com apenas alguns cliques.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card h-100 border-0">
+              <div class="card-body text-center py-4">
+                <div class="feature-icon">
+                  <i class="bi bi-bell"></i>
+                </div>
+                <h3 class="h4">Lembrete</h3>
+                <p class="text-muted">Receba notificações antes da sua consulta.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="my-5 py-4">
+        <div class="text-center mb-5">
+          <h2 class="fw-bold">Principais Especialidades</h2>
+          <p class="text-muted">Encontre o especialista que você precisa</p>
+        </div>
+        <div class="row g-4">
+          <div class="col-6 col-md-3">
+            <div class="card h-100">
+              <div class="card-body text-center py-4">
+                <i class="bi bi-heart text-primary fs-1 mb-3"></i>
+                <h4>Clínico Geral</h4>
+                <a href="#" class="btn btn-sm btn-outline-primary mt-2" onclick="showPage('clinicas')">Agendar</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card h-100">
+              <div class="card-body text-center py-4">
+                <i class="bi bi-heart-pulse text-primary fs-1 mb-3"></i>
+                <h4>Cardiologia</h4>
+                <a href="#" class="btn btn-sm btn-outline-primary mt-2" onclick="showPage('clinicas')">Agendar</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card h-100">
+              <div class="card-body text-center py-4">
+                <i class="bi bi-eye text-primary fs-1 mb-3"></i>
+                <h4>Oftalmologia</h4>
+                <a href="#" class="btn btn-sm btn-outline-primary mt-2" onclick="showPage('clinicas')">Agendar</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card h-100">
+              <div class="card-body text-center py-4">
+                <i class="bi bi-emoji-smile text-primary fs-1 mb-3"></i>
+                <h4>Pediatria</h4>
+                <a href="#" class="btn btn-sm btn-outline-primary mt-2" onclick="showPage('clinicas')">Agendar</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Página de Cadastro -->
+    <div id="cadastro-page" class="page">
+      <div class="row justify-content-center">
+        <div class="col-lg-6">
+          <div class="card shadow border-0">
+            <div class="card-body p-5">
+              <div class="text-center mb-4">
+                <h2>Criar uma conta</h2>
+                <p class="text-muted">Preencha seus dados para se cadastrar</p>
+              </div>
+              <form id="cadastroForm">
+                <div class="mb-3">
+                  <label for="nome" class="form-label">Nome Completo</label>
+                  <input type="text" class="form-control" id="nome" required>
+                </div>
+                <div class="mb-3">
+                  <label for="cpf" class="form-label">CPF</label>
+                  <input type="text" class="form-control" id="cpf" required>
+                  <div class="form-text">Apenas números</div>
+                </div>
+                <div class="mb-3">
+                  <label for="Nº Carteira SUS" class="form-label">Nº Carteira SUS</label>
+                  <input type="text" class="form-control" id="Nº Carteira SUS" required>
+                  <div class="form-text">Apenas números</div>
+                </div>
+                <div class="mb-3">
+                  <label for="dataNascimento" class="form-label">Data de Nascimento</label>
+                  <input type="date" class="form-control" id="dataNascimento" required>
+                </div>
+                <div class="mb-3">
+                  <label for="email" class="form-label">Email</label>
+                  <input type="email" class="form-control" id="email" required>
+                </div>
+                <div class="mb-3">
+                  <label for="telefone" class="form-label">Telefone</label>
+                  <input type="tel" class="form-control" id="telefone" required>
+                </div>
+                <div class="mb-3">
+                  <label for="senha" class="form-label">Senha</label>
+                  <input type="password" class="form-control" id="senha" required>
+                  <div class="form-text">Mínimo de 8 caracteres</div>
+                </div>
+                <div class="mb-3">
+                  <label for="confirmarSenha" class="form-label">Confirmar Senha</label>
+                  <input type="password" class="form-control" id="confirmarSenha" required>
+                </div>
+                <div class="form-check mb-4">
+                  <input class="form-check-input" type="checkbox" id="termos" required>
+                  <label class="form-check-label" for="termos">
+                    Li e aceito os <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a>
+                  </label>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2">Cadastrar</button>
+              </form>
+              <div class="text-center mt-3">
+                <p>Já tem uma conta? <a href="#" onclick="showPage('login')">Faça login</a></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Página de Login -->
+    <div id="login-page" class="page">
+      <div class="row justify-content-center">
+        <div class="col-lg-6">
+          <div class="card shadow border-0">
+            <div class="card-body p-5">
+              <div class="text-center mb-4">
+                <h2>Acesse sua conta</h2>
+                <p class="text-muted">Informe seus dados para entrar</p>
+              </div>
+              <form id="loginForm">
+                <div class="mb-3">
+                  <label for="loginEmail" class="form-label">Email</label>
+                  <input type="email" class="form-control" id="loginEmail" required>
+                </div>
+                <div class="mb-3">
+                  <label for="loginSenha" class="form-label">Senha</label>
+                  <input type="password" class="form-control" id="loginSenha" required>
+                </div>
+                <div class="mb-3 form-check">
+                  <input type="checkbox" class="form-check-input" id="lembrar">
+                  <label class="form-check-label" for="lembrar">Lembrar de mim</label>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2">Entrar</button>
+              </form>
+              <div class="text-center mt-3">
+                <p>Não tem uma conta? <a href="#" onclick="showPage('cadastro')">Cadastre-se</a></p>
+                <p><a href="#" onclick="showPage('recuperar-senha')">Esqueci minha senha</a></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Painel do Paciente -->
+    <div id="paciente-page" class="page">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 id="nomeUsuario">Bem-vindo, Paciente!</h1>
+        <button class="btn btn-outline-danger" onclick="logout()">Sair</button>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-4 mb-4">
+          <div class="card h-100">
+            <div class="card-body text-center py-4">
+              <i class="bi bi-calendar-plus text-primary fs-1 mb-3"></i>
+              <h3>Agendar Consulta</h3>
+              <p>Marque sua consulta ou exame com nossos especialistas</p>
+              <button class="btn btn-primary" onclick="showPage('agendamento')">Agendar</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+          <div class="card h-100">
+            <div class="card-body text-center py-4">
+              <i class="bi bi-file-medical text-primary fs-1 mb-3"></i>
+              <h3>Meus Exames</h3>
+              <p>Acesse seus resultados e histórico médico</p>
+              <button class="btn btn-outline-primary">Acessar</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+          <div class="card h-100">
+            <div class="card-body text-center py-4">
+              <i class="bi bi-gear text-primary fs-1 mb-3"></i>
+              <h3>Configurações</h3>
+              <p>Atualize seus dados e preferências</p>
+              <button class="btn btn-outline-primary" onclick="showPage('perfil')">Editar Perfil</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <h2 class="mt-5 mb-3">Próximos Agendamentos</h2>
+      <div id="agendamentos" class="list-group">
+        <!-- Agendamentos serão carregados dinamicamente -->
+      </div>
+    </div>
+
+    <!-- Página de Agendamento -->
+    <div id="agendamento-page" class="page">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Agendar Consulta/Exame</h1>
+        <button class="btn btn-outline-secondary" onclick="showPage('paciente')">Voltar</button>
+      </div>
+      
+      <div class="row">
+        <div class="col-md-4">
+          <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+              <h3 class="mb-0">Passo 1: Especialidade</h3>
+            </div>
+            <div class="card-body">
+              <div class="mb-3">
+                <label class="form-label">Tipo de Atendimento</label>
+                <select class="form-select" id="tipoAtendimento">
+                  <option value="consulta">Consulta Médica</option>
+                  <option value="exame">Exame</option>
+                </select>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">Especialidade</label>
+                <select class="form-select" id="especialidade">
+                  <option value="clinico-geral">Clínico Geral</option>
+                  <option value="cardiologia">Cardiologia</option>
+                  <option value="oftalmologia">Oftalmologia</option>
+                  <option value="pediatria">Pediatria</option>
+                  <option value="dermatologia">Dermatologia</option>
+                </select>
+              </div>
+              
+              <button class="btn btn-primary w-100" onclick="nextStep(2)">Próximo</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+              <h3 class="mb-0">Passo 2: Clínica</h3>
+            </div>
+            <div class="card-body">
+              <div id="clinicas-container">
+                <!-- Clínicas serão carregadas dinamicamente -->
+                <p class="text-muted">Selecione primeiro a especialidade</p>
+              </div>
+              
+              <button class="btn btn-primary w-100 mt-3" id="next-step-2" disabled onclick="nextStep(3)">Próximo</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+              <h3 class="mb-0">Passo 3: Data e Hora</h3>
+            </div>
+            <div class="card-body">
+              <div class="mb-3">
+                <label class="form-label">Data</label>
+                <input type="date" class="form-control" id="dataAgendamento" min="">
+              </div>
+              
+              <div id="horarios-container">
+                <p class="text-muted">Selecione primeiro a clínica e a data</p>
+              </div>
+              
+              <button class="btn btn-success w-100 mt-3" id="confirmar-agendamento" disabled onclick="confirmarAgendamento()">Confirmar Agendamento</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Página de Clínicas -->
+    <div id="clinicas-page" class="page">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Nossas Clínicas Parceiras</h1>
+        <button class="btn btn-outline-secondary" onclick="showPage('home')">Voltar</button>
+      </div>
+      
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="Buscar clínicas..." id="input-busca">
+            <button class="btn btn-primary" type="button" onclick="buscarClinicas()">
+              <i class="bi bi-search"></i>
+            </button>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <select class="form-select" id="select-especialidade" onchange="buscarClinicas()">
+            <option value="todas" selected>Todas especialidades</option>
+            <option value="clinico-geral">Clínico Geral</option>
+            <option value="cardiologia">Cardiologia</option>
+            <option value="oftalmologia">Oftalmologia</option>
+            <option value="pediatria">Pediatria</option>
+            <option value="dermatologia">Dermatologia</option>
+            <option value="exames">Exames</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="row" id="lista-clinicas">
+        <!-- Clínicas serão carregadas dinamicamente -->
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 mb-4">
+            <h5 class="text-white">Saúde Agora</h5>
+            <p class="text-white">Agendamento de consultas e exames médicos de forma rápida e simples.</p>
+          </div>
+          <div class="col-md-4 mb-4">
+            <h5 class="text-white">Links Úteis</h5>
+            <ul class="list-unstyled">
+              <li><a href="#" class="text-white">Sobre nós</a></li>
+              <li><a href="#" class="text-white">Contato</a></li>
+              <li><a href="#" class="text-white">Termos de uso</a></li>
+            </ul>
+          </div>
+          <div class="col-md-4 mb-4">
+            <h5 class="text-white">Contato</h5>
+            <p class="text-white"><i class="bi bi-envelope me-2"></i> contato@saudeagora.com.br</p>
+            <p class="text-white"><i class="bi bi-telephone me-2"></i> (24) 1234-5678</p>
+          </div>
+        </div>
+        <hr class="my-4 bg-secondary">
+        <div class="text-center">
+          <p class="mb-0 text-white">&copy; 2023 Saúde Agora. Todos os direitos reservados.</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Modal de Mensagens -->
+    <div class="modal fade" id="modalMensagem" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Mensagem</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p id="modalMessageText"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const dadosSimulados = {
+      usuarios: [
+        {
+          email: "paciente@exemplo.com",
+          senha: "paciente123",
+          nome: "Fernanda Silva",
+          tipo: "paciente",
+          cpf: "12345678901",
+          data_nascimento: "1985-05-15",
+          telefone: "(11) 99999-9999"
+        }
+      ],
+      clinicas: [
+        {
+          id: "1",
+          nome: "Clínica Saúde Total",
+          endereco: "Av. Paulista, 1000 - Paraíba do Sul/RJ",
+          telefone: "(24) 1234-5678",
+          especialidades: ["clinico-geral", "cardiologia"],
+          imagem: "https://via.placeholder.com/300"
+        },
+        {
+          id: "2",
+          nome: "Hospital Bem Estar",
+          endereco: "Rua das Flores, 500 - Paraíba do Sul/RJ",
+          telefone: "(24) 8765-4321",
+          especialidades: ["oftalmologia", "dermatologia", "exames"],
+          imagem: "https://via.placeholder.com/300"
+        }
+      ],
+      agendamentos: [],
+      horariosPadrao: [
+        '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+        '11:00', '11:30', '13:00', '13:30', '14:00', '14:30',
+        '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'
+      ]
+    };
+
+    let currentUser = null;
+
+    // Funções de Navegação
+    function showPage(pageId) {
+      document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+      document.getElementById(`${pageId}-page`).classList.add('active');
+      updateNavigation();
+
+      if(pageId === 'paciente') loadPacienteData();
+      if(pageId === 'agendamento') resetAgendamento();
+      if(pageId === 'clinicas') buscarClinicas();
+    }
+
+    function updateNavigation() {
+      const mainNav = document.getElementById('mainNav');
+      if(currentUser) {
+        mainNav.innerHTML = `
+          <a href="#" class="btn btn-outline-primary me-2" onclick="showPage('paciente')">Meu Painel</a>
+          <button class="btn btn-primary" onclick="logout()">Sair</button>`;
+      } else {
+        mainNav.innerHTML = `
+          <a href="#" class="btn btn-outline-primary me-2" onclick="showPage('login')">Entrar</a>
+          <a href="#" class="btn btn-primary" onclick="showPage('cadastro')">Cadastre-se</a>`;
+      }
+    }
+
+    // Sistema de Autenticação
+    function login(email, senha) {
+      return new Promise((resolve, reject) => {
+        const usuario = dadosSimulados.usuarios.find(u => u.email === email);
+        if(!usuario) return reject('Usuário não encontrado');
+        if(usuario.senha !== senha) return reject('Senha incorreta');
+        
+        currentUser = usuario;
+        localStorage.setItem('currentUser', JSON.stringify(usuario));
+        resolve();
+      });
+    }
+
+    function logout() {
+      currentUser = null;
+      localStorage.removeItem('currentUser');
+      showPage('home');
+    }
+
+    // Sistema de Agendamento
+    function nextStep(step) {
+      if(step === 2) carregarClinicas();
+      if(step === 3) configurarDataInput();
+    }
+
+    function carregarClinicas() {
+      const tipo = document.getElementById('tipoAtendimento').value;
+      const especialidade = document.getElementById('especialidade').value;
+      
+      const clinicasFiltradas = dadosSimulados.clinicas.filter(clinica => 
+        tipo === 'exame' 
+          ? clinica.especialidades.includes('exames')
+          : clinica.especialidades.includes(especialidade)
+      );
+
+      const container = document.getElementById('clinicas-container');
+      container.innerHTML = clinicasFiltradas.map(clinica => `
+        <div class="card mb-3 clinica-card" onclick="selecionarClinica('${clinica.id}')">
+          <div class="card-body">
+            <h5>${clinica.nome}</h5>
+            <p class="text-muted mb-1">${clinica.endereco}</p>
+            <small>${clinica.telefone}</small>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function selecionarClinica(id) {
+      document.querySelectorAll('.clinica-card').forEach(card => 
+        card.classList.remove('selected'));
+      event.target.closest('.clinica-card').classList.add('selected');
+      document.getElementById('next-step-2').disabled = false;
+      sessionStorage.setItem('selectedClinica', id);
+    }
+
+    function configurarDataInput() {
+      const dataInput = document.getElementById('dataAgendamento');
+      dataInput.min = new Date().toISOString().split('T')[0];
+      dataInput.addEventListener('change', carregarHorarios);
+    }
+
+    function carregarHorarios() {
+      const clinicaId = sessionStorage.getItem('selectedClinica');
+      const dataSelecionada = this.value;
+      const clinica = dadosSimulados.clinicas.find(c => c.id === clinicaId);
+
+      if(!clinica || !dataSelecionada) return;
+
+      const horarios = gerarHorariosDisponiveis(clinica, dataSelecionada);
+      const container = document.getElementById('horarios-container');
+      
+      container.innerHTML = horarios.map(horario => `
+        <div class="time-slot ${horario.disponivel ? 'available' : 'booked'}" 
+             onclick="${horario.disponivel ? 'selecionarHorario(this)' : ''}">
+          ${horario.horario}
+        </div>
+      `).join('');
+    }
+
+    function gerarHorariosDisponiveis(clinica, data) {
+      const agendamentos = dadosSimulados.agendamentos.filter(a => 
+        a.clinica_id === clinica.id && 
+        a.data === data && 
+        a.status !== 'cancelado'
+      );
+      
+      return dadosSimulados.horariosPadrao.map(horario => ({
+        horario,
+        disponivel: !agendamentos.some(a => a.horario === horario)
+      }));
+    }
+
+    function selecionarHorario(elemento) {
+      document.querySelectorAll('.time-slot').forEach(slot => 
+        slot.classList.remove('selected'));
+      elemento.classList.add('selected');
+      document.getElementById('confirmar-agendamento').disabled = false;
+      sessionStorage.setItem('selectedHorario', elemento.textContent);
+    }
+
+    function confirmarAgendamento() {
+      const clinicaId = sessionStorage.getItem('selectedClinica');
+      const data = document.getElementById('dataAgendamento').value;
+      const horario = sessionStorage.getItem('selectedHorario');
+      const clinica = dadosSimulados.clinicas.find(c => c.id === clinicaId);
+
+      const novoAgendamento = {
+        id: Date.now().toString(),
+        paciente_id: currentUser.email,
+        clinica_id: clinicaId,
+        tipo: document.getElementById('tipoAtendimento').value,
+        especialidade: document.getElementById('especialidade').value,
+        data: data,
+        horario: horario,
+        status: 'confirmado'
+      };
+
+      dadosSimulados.agendamentos.push(novoAgendamento);
+      showMessage(`Consulta agendada na ${clinica.nome} para ${data} às ${horario}`);
+      showPage('paciente');
+    }
+
+    // Funções Auxiliares
+    function showMessage(message) {
+      document.getElementById('modalMessageText').textContent = message;
+      new bootstrap.Modal('#modalMensagem').show();
+    }
+
+    function resetAgendamento() {
+      sessionStorage.removeItem('selectedClinica');
+      sessionStorage.removeItem('selectedHorario');
+      document.getElementById('clinicas-container').innerHTML = '<p class="text-muted">Selecione primeiro a especialidade</p>';
+      document.getElementById('horarios-container').innerHTML = '<p class="text-muted">Selecione primeiro a clínica e a data</p>';
+    }
+
+    function loadPacienteData() {
+      if(!currentUser) return;
+      
+      document.getElementById('nomeUsuario').textContent = `Bem-vindo, ${currentUser.nome.split(' ')[0]}!`;
+      const agendamentos = dadosSimulados.agendamentos
+        .filter(a => a.paciente_id === currentUser.email)
+        .sort((a, b) => new Date(`${a.data}T${a.horario}`) - new Date(`${b.data}T${b.horario}`));
+
+      const container = document.getElementById('agendamentos');
+      container.innerHTML = agendamentos.map(agendamento => {
+        const clinica = dadosSimulados.clinicas.find(c => c.id === agendamento.clinica_id);
+        return `
+          <div class="list-group-item appointment-card ${agendamento.status === 'cancelado' ? 'canceled' : ''}">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h5 class="mb-1">${agendamento.tipo} - ${agendamento.especialidade}</h5>
+                <small class="text-muted">${formatarData(agendamento.data)} - ${agendamento.horario}</small>
+                <div>${clinica.nome} 
+                  <span class="badge ${agendamento.status === 'confirmado' ? 'bg-success' : 'bg-warning'}">
+                    ${agendamento.status}
+                  </span>
+                </div>
+              </div>
+              <div>
+                ${agendamento.status !== 'cancelado' ? 
+                  `<button class="btn btn-outline-danger btn-sm" onclick="cancelarAgendamento('${agendamento.id}')">
+                    Cancelar
+                  </button>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function cancelarAgendamento(id) {
+      if(confirm('Tem certeza que deseja cancelar este agendamento?')) {
+        const agendamento = dadosSimulados.agendamentos.find(a => a.id === id);
+        if(agendamento) {
+          agendamento.status = 'cancelado';
+          loadPacienteData();
+          showMessage('Agendamento cancelado com sucesso!');
+        }
+      }
+    }
+
+    function formatarData(dataString) {
+      const [ano, mes, dia] = dataString.split('-');
+      return `${dia}/${mes}/${ano}`;
+    }
+
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', function() {
+      // Máscaras
+      const cpfInput = document.getElementById('cpf');
+      if(cpfInput) {
+        cpfInput.addEventListener('input', function(e) {
+          let value = e.target.value.replace(/\D/g, '');
+          value = value.replace(/(\d{3})(\d)/, '$1.$2');
+          value = value.replace(/(\d{3})(\d)/, '$1.$2');
+          value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+          e.target.value = value;
+        });
+      }
+
+      const telefoneInput = document.getElementById('telefone');
+      if(telefoneInput) {
+        telefoneInput.addEventListener('input', function(e) {
+          let value = e.target.value.replace(/\D/g, '');
+          value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
+          value = value.replace(/(\d)(\d{4})$/, '$1-$2');
+          e.target.value = value;
+        });
+      }
+
+      // Formulários
+      document.getElementById('cadastroForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if(this.checkValidity()) {
+          const usuario = {
+            email: this.email.value,
+            senha: this.senha.value,
+            nome: this.nome.value,
+            cpf: this.cpf.value,
+            data_nascimento: this.dataNascimento.value,
+            telefone: this.telefone.value
+          };
+          dadosSimulados.usuarios.push(usuario);
+          login(usuario.email, usuario.senha)
+            .then(() => showPage('paciente'))
+            .catch(err => showMessage(err));
+        }
+      });
+
+      document.getElementById('loginForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        login(this.loginEmail.value, this.loginSenha.value)
+          .then(() => showPage('paciente'))
+          .catch(err => showMessage(err));
+      });
+
+      // Verificar login ao carregar
+      const savedUser = localStorage.getItem('currentUser');
+      if(savedUser) {
+        currentUser = JSON.parse(savedUser);
+        showPage('paciente');
+      }
+    });
+  </script>
+</body>
+</html>
